@@ -1,5 +1,4 @@
-import {  Body, 
-    Controller,
+import {  Body,
     Controller,
     Delete,
     Get,
@@ -9,6 +8,10 @@ import {  Body,
     Post, 
 
 } from '@nestjs/common';
+
+import { PaymentsService } from './payments.service';
+import { PaymentDto } from './dto/payment.dto';
+import { PaymentStatus } from './payment.entity';
 
 @Controller('payments')
 export class PaymentsController {
