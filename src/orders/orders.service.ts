@@ -1,17 +1,28 @@
-import { BadRequestException, Injectable, NotFoundException,} from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 
 import { Order, OrderStatus } from './order.entity';
 import { OrderItem } from './order-item.entity';
 import { Medicine } from '../medicines/medicine.entity';
 import { OrderDto } from './dto/order.dto';
+import {
+  Payment,
+  PaymentMethod,
+  PaymentStatus,
+} from '../payments/payment.entity';
 
 
 @Injectable()
 export class OrdersService {
 
 constructor(
+    private readonly dataSource: DataSource,
+
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
 
@@ -20,14 +31,17 @@ constructor(
 
     @InjectRepository(Medicine)
     private readonly medicineRepository: Repository<Medicine>,
+
+    @InjectRepository(Payment)
+    private readonly paymentRepository: Repository<Payment>,
   ) {}
 
-  async create(orderDto: OrderDto) {
+  async create(orderDto: OrderDto, userId: number) {
     let totalAmount = 0;
     const orderItems: OrderItem[] = [];
 
     const order = this.orderRepository.create({
-      userId: orderDto.userId,
+      userId,
       totalAmount: 0,
       status: OrderStatus.PENDING,
     });
@@ -72,6 +86,15 @@ constructor(
     savedOrder.totalAmount = totalAmount;
     await this.orderRepository.save(savedOrder);
 
+    const payment = this.paymentRepository.create({
+      orderId: savedOrder.id,
+      amount: totalAmount,
+      method: PaymentMethod.COD,
+      status: PaymentStatus.PENDING,
+    });
+
+    await this.paymentRepository.save(payment);
+
     return {
       message: 'Order created successfully',
       order: savedOrder,
@@ -83,6 +106,13 @@ constructor(
     const orders = await this.orderRepository.find();
 
     return orders;
+  }
+
+  async findByUserId(userId: number) {
+    return this.orderRepository.find({
+      where: { userId },
+      order: { createdAt: 'DESC' },
+    });
   }
 
   async findOne(id: number) {
@@ -105,17 +135,50 @@ constructor(
   }
 
   async updateStatus(id: number, status: OrderStatus) {
-    const order = await this.orderRepository.findOne({
-      where: { id },
+    return this.dataSource.transaction(async (manager) => {
+      const order = await manager.findOne(Order, {
+        where: { id },
+      });
+
+      if (!order) {
+        throw new NotFoundException('Order not found');
+      }
+
+      const items = await manager.find(OrderItem, {
+        where: { orderId: id },
+      });
+
+      const payment = await manager.findOne(Payment, {
+        where: { orderId: id },
+      });
+
+      if (
+        status === OrderStatus.REJECTED ||
+        status === OrderStatus.CANCELLED ||
+        status === OrderStatus.DELIVERY_FAILED
+      ) {
+        for (const item of items) {
+          const medicine = await manager.findOne(Medicine, {
+            where: { id: item.medicineId },
+          });
+
+          if (medicine) {
+            medicine.stock += item.quantity;
+            await manager.save(medicine);
+          }
+        }
+
+        if (payment) {
+          payment.status = PaymentStatus.CANCELLED;
+          await manager.save(payment);
+        }
+      }
+
+      order.status = status;
+      await manager.save(order);
+
+      return order;
     });
-
-    if (!order) {
-      throw new NotFoundException('Order not found');
-    }
-
-    order.status = status;
-
-    return this.orderRepository.save(order);
   }
 
   async remove(id: number) {
