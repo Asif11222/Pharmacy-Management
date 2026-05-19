@@ -10,28 +10,31 @@ import {
 export enum OrderStatus {
   PENDING = 'pending',
   APPROVED = 'approved',
+  ACCEPTED = 'accepted',
   DELIVERED = 'delivered',
   CANCELLED = 'cancelled',
+  REJECTED = 'rejected',
+  DELIVERY_FAILED = 'delivery_failed',
 }
 
 @Entity('orders')
 export class Order {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ nullable: true })
-  userId: number;
+  userId!: number;
 
   @Column('float', { default: 0 })
-  totalAmount: number;
+  totalAmount!: number;
 
   @Column({
     type: 'enum',
     enum: OrderStatus,
     default: OrderStatus.PENDING,
   })
-  status: OrderStatus;
+  status!: OrderStatus;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 }
