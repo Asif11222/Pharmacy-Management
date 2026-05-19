@@ -4,23 +4,26 @@ import {
   IsEmail,
   IsNotEmpty,
   MinLength,
-  IsOptional,
   IsString,
+  Matches,
 } from 'class-validator';
 
 export class RegisterDto {
   @IsNotEmpty()
   @IsString()
-  fullName: string;
+  fullName!: string;
 
   @IsEmail()
-  email: string;
+  email!: string;
 
   @IsNotEmpty()
   @MinLength(4)
-  password: string;
+  password!: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  phone?: string;
+  @Matches(/^\d+$/, {
+    message: 'Phone number must contain numbers only',
+  })
+  phone!: string;
 }
