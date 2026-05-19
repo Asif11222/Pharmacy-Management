@@ -18,36 +18,37 @@ export enum PaymentStatus {
   PENDING = 'pending',
   PAID = 'paid',
   FAILED = 'failed',
+  CANCELLED = 'cancelled',
 }
 
 @Entity('payments')
 export class Payment {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column()
-  orderId: number;
+  orderId!: number;
 
   @Column('float')
-  amount: number;
+  amount!: number;
 
   @Column({
     type: 'enum',
     enum: PaymentMethod,
     default: PaymentMethod.COD,
   })
-  method: PaymentMethod;
+  method!: PaymentMethod;
 
   @Column({
     type: 'enum',
     enum: PaymentStatus,
     default: PaymentStatus.PENDING,
   })
-  status: PaymentStatus;
+  status!: PaymentStatus;
 
   @Column({ nullable: true })
-  transactionId: string;
+  transactionId!: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 }
