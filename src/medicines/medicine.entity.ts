@@ -8,27 +8,27 @@ import {
 export class Medicine {
 
     @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column()
-  name: string;
+  name!: string;
 
   @Column()
-  category: string;
+  category!: string;
 
   @Column('decimal')
-  price: number;
+  price!: number;
 
   @Column()
-  stock: number;
+  stock!: number;
 
   @Column({ nullable: true })
-  description: string;
+  description!: string;
 
   @Column({ nullable: true })
-  expiryDate: string;
+  expiryDate!: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
 }
