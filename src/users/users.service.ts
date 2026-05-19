@@ -24,6 +24,12 @@ export class UsersService {
     });
   }
 
+  async findByPhone(phone: string): Promise<Users | null> {
+    return this.userRepository.findOne({
+      where: { phone },
+    });
+  }
+
   async findById(id: number): Promise<Users | null> {
     return this.userRepository.findOne({
       where: { id },
@@ -33,4 +39,15 @@ export class UsersService {
   async findAll(): Promise<Users[]> {
     return this.userRepository.find();
   }
+
+   async save(user: Users): Promise<Users> {
+  return this.userRepository.save(user);
+ }
+
+ async findByResetToken(token: string): Promise<Users | null> {
+  return this.userRepository.findOne({
+    where: { resetPasswordToken: token },
+  });
+}
+
 }
