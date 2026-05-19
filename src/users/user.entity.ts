@@ -15,27 +15,33 @@ export enum UserRole {
 @Entity()
 export class Users {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column()
-  fullName: string;
+  fullName!: string;
 
   @Column({ unique: true })
-  email: string;
+  email!: string;
 
   @Column()
-  password: string;
+  password!: string;
 
   @Column({
     type: 'enum',
     enum: UserRole,
     default: UserRole.USER,
   })
-  role: UserRole;
+  role!: UserRole;
 
   @Column({ nullable: true })
-  phone: string;
+  phone!: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
+
+  @Column({ type: 'text', nullable: true })
+  resetPasswordToken!: string | null;
+
+  @Column({ type: 'timestamp', nullable: true })
+  resetPasswordExpires!: Date | null;
 }
